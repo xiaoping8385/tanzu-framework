@@ -1,0 +1,18 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:yaml", "yaml")
+
+#@ def getCompatibleTKRs():
+- #@ data.values.defaultCompatibleTKR
+#@ end
+
+---
+apiVersion: v1
+data:
+  tkrVersions: #@ yaml.encode(getCompatibleTKRs())
+kind: ConfigMap
+metadata:
+  labels:
+    run.tanzu.vmware.com/additional-compatible-tkrs: ""
+  name: tkg-compatibility-versions
+  namespace: tkg-system
+

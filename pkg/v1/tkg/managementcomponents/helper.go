@@ -5,6 +5,7 @@
 package managementcomponents
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"time"
@@ -12,6 +13,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/vmware-tanzu/tanzu-framework/pkg/v1/tkg/constants"
+	"github.com/vmware-tanzu/tanzu-framework/pkg/v1/tkg/tkgconfigbom"
 	"github.com/vmware-tanzu/tanzu-framework/pkg/v1/tkg/utils"
 )
 
@@ -21,18 +23,18 @@ const (
 )
 
 // GetTKGPackageConfigValuesFileFromUserConfig returns values file from user configuration
-func GetTKGPackageConfigValuesFileFromUserConfig(managementPackageVersion string, userProviderConfigValues map[string]interface{}) (string, error) {
+func GetTKGPackageConfigValuesFileFromUserConfig(managementPackageVersion string, userProviderConfigValues map[string]interface{}, tkgBomConfig *tkgconfigbom.BOMConfiguration) (string, error) {
 	// TODO: Temporary hack(hard coded values) to configure TKR source controller package values. This should be replaced with the logic
 	// that fetches these values from tkg-bom(for bom related urls) and set the TKR source controller package values
 	var tkrRepoImagePath string
 	providerType := userProviderConfigValues[constants.ConfigVariableProviderType]
 	switch providerType {
 	case constants.InfrastructureProviderVSphere:
-		tkrRepoImagePath = "projects-stg.registry.vmware.com/tkg/tkr-repository-vsphere-nonparavirt"
+		tkrRepoImagePath = fmt.Sprintf("%s/%s", tkgBomConfig.ImageConfig.ImageRepository, tkgBomConfig.TKRPackageRepo.VSphereNonparavirt)
 	case constants.InfrastructureProviderAWS:
-		tkrRepoImagePath = "projects-stg.registry.vmware.com/tkg/tkr-repository-aws"
+		tkrRepoImagePath = fmt.Sprintf("%s/%s", tkgBomConfig.ImageConfig.ImageRepository, tkgBomConfig.TKRPackageRepo.AWS)
 	case constants.InfrastructureProviderAzure:
-		tkrRepoImagePath = "projects-stg.registry.vmware.com/tkg/tkr-repository-azure"
+		tkrRepoImagePath = fmt.Sprintf("%s/%s", tkgBomConfig.ImageConfig.ImageRepository, tkgBomConfig.TKRPackageRepo.Azure)
 	}
 
 	tkgPackageConfig := TKGPackageConfig{
@@ -73,9 +75,10 @@ func GetTKGPackageConfigValuesFileFromUserConfig(managementPackageVersion string
 			VersionConstraints: managementPackageVersion,
 			TKRSourceControllerPackageValues: TKRSourceControllerPackageValues{
 				VersionConstraints:   managementPackageVersion,
-				BomImagePath:         "projects-stg.registry.vmware.com/tkg/tkr-bom",
-				BomMetadataImagePath: "projects-stg.registry.vmware.com/tkg/v16-v1.6.0-zshippable/tkr-compatibility",
+				BomImagePath:         fmt.Sprintf("%s/%s", tkgBomConfig.ImageConfig.ImageRepository, tkgBomConfig.TKRBOM.ImagePath),
+				BomMetadataImagePath: fmt.Sprintf("%s/%s", tkgBomConfig.ImageConfig.ImageRepository, tkgBomConfig.TKRCompatibility.ImagePath),
 				TKRRepoImagePath:     tkrRepoImagePath,
+				DefaultCompatibleTKR: tkgBomConfig.Default.TKRVersion,
 			},
 		},
 		CoreManagementPluginsPackage: CoreManagementPluginsPackage{
