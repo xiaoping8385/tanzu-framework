@@ -520,6 +520,10 @@ spec:
         path: /spec/template/spec/server
         valueFrom:
           variable: vcenter.server
+      - op: replace
+        path: /spec/template/spec/template
+        valueFrom:
+          template: '{{(index .TKR_DATA .builtin.controlPlane.version).osImageRef.template}}'
   - name: workerMachineTemplate
     definitions:
     - selector:
@@ -580,6 +584,10 @@ spec:
         path: /spec/template/spec/server
         valueFrom:
           variable: vcenter.server
+      - op: replace
+        path: /spec/template/spec/template
+        valueFrom:
+          template: '{{(index .TKR_DATA .builtin.controlPlane.version).osImageRef.template}}'
   - name: kubeadmControlPlaneTemplate
     definitions:
     - selector:
